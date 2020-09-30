@@ -67,11 +67,12 @@ body {
 `
 
 func main() {
+	bind := flag.String("http", "127.0.0.1:80", "listening port")
 	log.SetFlags(log.Lmicroseconds)
 	flag.Parse()
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		io.WriteString(w, root)
 	})
 	log.Printf("Serving")
-	log.Fatal(http.ListenAndServe(":8099", nil))
+	log.Fatal(http.ListenAndServe(*bind, nil))
 }

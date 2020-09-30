@@ -9,6 +9,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 const root = `<!DOCTYPE html>
@@ -36,7 +38,18 @@ body {
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <script>
 	"use strict";
+	function autoReload() {
+		try {
+			let ws = new WebSocket('ws://' + window.location.host + '/auto-reload');
+			ws.addEventListener('close', function(event) {
+				window.location.reload();
+			})
+		} catch(ex) {
+			window.console('autoReload(): ', ex);
+		}
+	}
 	window.addEventListener("DOMContentLoaded", (event) => {
+		autoReload();
 		let textElem = document.getElementById("clock");
 		function updateClock() {
 			let d = new Date();
@@ -72,6 +85,20 @@ func main() {
 	flag.Parse()
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		io.WriteString(w, root)
+	})
+	http.HandleFunc("/auto-reload", func(w http.ResponseWriter, req *http.Request) {
+		upgrader := websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		}
+		if _, err := upgrader.Upgrade(w, req, nil); err != nil {
+			if _, ok := err.(websocket.HandshakeError); !ok {
+				log.Println(err)
+			}
+			return
+		}
+		// Hang the connection. It'll close when the server is restarted.
+		select {}
 	})
 	log.Printf("Serving")
 	log.Fatal(http.ListenAndServe(*bind, nil))

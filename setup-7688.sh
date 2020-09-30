@@ -31,6 +31,11 @@ sudo systemctl enable dlibox-7688.service
 echo "Install unclutter"
 sudo apt install unclutter
 
+echo "Install emojis"
+mkdir -p ~/.fonts
+wget -O ~/.fonts/NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/master/fonts/NotoColorEmoji.ttf
+fc-cache -f -v
+
 echo "Setup chromium-browser"
 sed -i 's/"exited_cleanly": false/"exited_cleanly": true/' \
       ~/.config/chromium/Default/Preferences

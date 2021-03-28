@@ -5,6 +5,8 @@
 
 set -eu
 
+cd "$(dirname $0)"
+
 echo "- Setting up dlibox as system service"
 sudo tee /etc/systemd/system/dlibox-7688.service > /dev/null <<EOF
 # https://github.com/maruel/dlibox-7688
@@ -13,8 +15,8 @@ Description=Runs dlibox-7688 automatically upon boot
 Wants=network-online.target
 After=network-online.target
 [Service]
-User=root
-Group=root
+User=pi
+Group=pi
 KillMode=mixed
 Restart=always
 TimeoutStopSec=10s
@@ -27,19 +29,27 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable dlibox-7688.service
+sudo systemctl start dlibox-7688.service
+
+echo "Disabling bluetooth"
+echo "dtoverlay=pi3-disable-bt" | sudo tee --append /boot/config.txt
+sudo systemctl disable hciuart.service
+sudo systemctl disable bluealsa.service
+sudo systemctl disable bluetooth.service
+sudo apt purge bluez
 
 echo "Install unclutter"
 sudo apt install unclutter
 
 echo "Install emojis"
-mkdir -p ~/.fonts
-wget -O ~/.fonts/NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/master/fonts/NotoColorEmoji.ttf
-fc-cache -f -v
+if [ ! -f ~/.fonts/NotoColorEmoji.ttf ]; then
+  mkdir -p ~/.fonts
+  wget -O ~/.fonts/NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/master/fonts/NotoColorEmoji.ttf
+  fc-cache -f -v
+fi
 
 echo "Setup chromium-browser"
-sed -i 's/"exited_cleanly": false/"exited_cleanly": true/' \
-      ~/.config/chromium/Default/Preferences
-
+cp ./on-start-7688.sh /home/pi/on-start-7688.sh
 mkdir -p ~/.config/lxsession/LXDE-pi
 cat > ~/.config/lxsession/LXDE-pi/autostart <<EOF
 @/home/pi/on-start-7688.sh

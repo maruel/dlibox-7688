@@ -19,4 +19,8 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 chromium-browser --start-fullscreen --kiosk --no-first-run \
   --disable-tab-switcher --disable-translate --disable-infobars \
   --disable-session-crashed-bubble \
-  http://127.0.0.1/
+  --disable-component-update \
+    --disable-component-update \
+  --disable-component-update \
+  https://horloge-entree.glitch.me/
+  #http://127.0.0.1/
